@@ -1,30 +1,30 @@
-import User from '../models';
+import models from '../models';
+const { User } = models;
+
 import { signToken, AuthenticationError } from '../services/auth';
 
 const resolvers = {
   Query: {
-    // ...existing code...
     me: async (parent, args, context) => {
       if (context.user) {
         return await User.findById(context.user._id).populate('savedBooks');
       }
-      throw new AuthenticationError('You need to be logged in!');
+      throw AuthenticationError;
     },
   },
 
   Mutation: {
-    // ...existing code...
     login: async (parent, { email, password }) => {
       const user = await User.findOne({ email });
 
       if (!user) {
-        throw new AuthenticationError("Authentication failed! Please check your credentials and try again.");
+        throw AuthenticationError;
       }
 
       const correctPw = await user.isCorrectPassword(password);
 
       if (!correctPw) {
-        throw new AuthenticationError('Authentication failed! Please check your credentials and try again.');
+        throw AuthenticationError;
       }
 
       const token = signToken(user);
@@ -45,7 +45,7 @@ const resolvers = {
           { new: true, runValidators: true }
         );
       }
-      throw new AuthenticationError('You need to be logged in!');
+      throw AuthenticationError;
     },
 
     removeBook: async (parent, { bookId }, context) => {
@@ -56,7 +56,7 @@ const resolvers = {
           { new: true }
         );
       }
-      throw new AuthenticationError('You need to be logged in!');
+      throw AuthenticationError;
     },
   },
 };
