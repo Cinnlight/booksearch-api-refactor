@@ -1,84 +1,44 @@
-// server.js
-
-require('dotenv').config();
 const express = require('express');
-const path = require('path');
 const { ApolloServer } = require('@apollo/server');
 const { expressMiddleware } = require('@apollo/server/express4');
+const path = require('path');
+const { authMiddleware } = require('./utils/auth');
+
+const { typeDefs, resolvers } = require('./schema');
 const db = require('./config/connection');
-const typeDefs = require('./schema/typeDefs');
-const resolvers = require('./schema/resolvers');
-const { verifyToken } = require('./utils/auth');
-const cors = require('cors');
-const bodyParser = require('body-parser');
 
 const PORT = process.env.PORT || 3001;
-console.log('PORT:', PORT);
 const app = express();
-
-// Middleware for parsing incoming requests
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// Configure CORS
-const corsOptions = {
-  origin:
-    process.env.NODE_ENV === 'production'
-      ? 'https://your-production-domain.com' // Replace with your production domain
-      : 'http://localhost:3000', // Frontend development server
-  credentials: true,
-};
-app.use(cors(corsOptions));
-
-// Serve static files from the React frontend app only in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-}
-
-// Initialize Apollo Server
 const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
 
-// Start Apollo Server and apply middleware
-async function startApolloServer() {
+// Create a new instance of an Apollo server with the GraphQL schema
+const startApolloServer = async () => {
   await server.start();
 
-  // Apply Apollo middleware before defining wildcard routes
-  app.use(
-    '/graphql',
-    bodyParser.json(),
-    expressMiddleware(server, {
-      context: async ({ req }) => {
-        const authHeader = req.headers.authorization || '';
-        const token = authHeader.split(' ').pop().trim();
-        const user = verifyToken(token);
-        return { user };
-      },
-    })
-  );
+  app.use(express.urlencoded({ extended: false }));
+  app.use(express.json());
 
-  // Define a wildcard route to serve the React app for any unknown routes (client-side routing) only in production
+  app.use('/graphql', expressMiddleware(server, {
+    context: authMiddleware
+  }));
+
   if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../client/dist')));
+
     app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../client/build/index.html'));
-    });
-  } else {
-    // In development, respond with a simple message for all other routes
-    app.get('*', (req, res) => {
-      res.send('GraphQL server is running. Use Apollo Sandbox at /graphql');
+      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
     });
   }
 
   db.once('open', () => {
     app.listen(PORT, () => {
-      console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`🚀 Sandbox available at http://localhost:${PORT}/graphql`);
-      }
+      console.log(`API server running on port ${PORT}!`);
+      console.log(`Use GraphQL at http://localhost:${PORT}/graphql`);
     });
   });
-}
+};
 
 startApolloServer();
