@@ -6,16 +6,20 @@ const { GraphQLError } = require('graphql');
 const secret = process.env.JWT_SECRET_KEY || "vewwysecwet";
 const expiration = process.env.JWT_EXPIRATION || "2h";
 
-
+// Define AuthenticationError before authMiddleware
+const AuthenticationError = new GraphQLError('Could not authenticate user.', {
+  extensions: {
+    code: 'UNAUTHENTICATED',
+  },
+});
 
 const authMiddleware = ({ req }) => {
   const token = req.headers.authorization || '';
   
   if (token) {
     try {
-      // Verify the token and attach the user to the context
-      const user = jwt.verify(token.split(' ')[1], secret);
-      return { user };
+      const decoded = jwt.verify(token.split(' ')[1], secret);
+      return { user: decoded };
     } catch (err) {
       throw AuthenticationError;
     }
@@ -25,14 +29,10 @@ const authMiddleware = ({ req }) => {
 };
 
 module.exports = {
-  AuthenticationError: new GraphQLError('Could not authenticate user.', {
-    extensions: {
-      code: 'UNAUTHENTICATED',
-    },
-  }),
+  AuthenticationError,
   authMiddleware,
   signToken: function ({ email, username, _id }) {
     const payload = { email, username, _id };
-    return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
+    return jwt.sign(payload, secret, { expiresIn: expiration });
   },
 };
