@@ -13,10 +13,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-  },
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.7"
   }
 }
