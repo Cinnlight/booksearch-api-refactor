@@ -16,6 +16,9 @@
 
 This project is a refactored version of an original PERN (PostgreSQL, Express, React, Node.js) stack application. The refactoring process involved migrating the backend database from PostgreSQL to MongoDB, thereby transitioning the application to a MERN (MongoDB, Express, React, Node.js) stack. Additionally, the JWT (JSON Web Token) authentication mechanism was revamped to enhance security and efficiency. The application leverages the Google Books API to allow users to search for books and add them to their personal lists when logged in. Both server-side and client-side components were updated to align with the MERN architecture.
 
+![image](https://github.com/user-attachments/assets/0f6d2eff-07a1-40b8-876c-efb006477d62)
+
+
 ## Features
 
 - **User Authentication:** Secure login and registration using JWT.
