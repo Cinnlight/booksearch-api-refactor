@@ -1,4 +1,4 @@
-# Booksearch Application Refactor: PERN to MERN Stack
+# Booksearch Application Refactor: RESTful api to GraphQL
 
 ## Table of Contents
 - [Description](#description)
